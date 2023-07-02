@@ -74,7 +74,7 @@ void AHitbox::CheckOverlappingActors()
 					AFighterPlayerController* OwnerController = Cast<AFighterPlayerController>(OwnerCharacter->Controller);
 					if (OwnerController && HasAuthority())
 					{
-						if (VictimCharacter != GetOwner())
+						if (VictimCharacter != GetOwner() && HasAuthority())
 						{
 							Hits += 1;
 							UGameplayStatics::ApplyDamage(VictimCharacter, Damage, OwnerController, this, UDamageType::StaticClass());

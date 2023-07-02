@@ -12,7 +12,7 @@ class UInputMappingContext;
 class UInputAction;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterFlipped, bool, bCharacterFlipped);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUpdateHealth, float, NewHealth, bool, bLeftHealthBar);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUpdateHealth, float, NewHealth, APlayerState*, DamagedPlayer);
 
 UCLASS(config=Game)
 class AFighterCharacter : public ACharacter
@@ -30,13 +30,13 @@ public:
 	void CameraSetup();
 
 	UFUNCTION()
-	void UpdateHUDHealth(float NewHealth, bool bLeftHealthBar);
+	void UpdateHUDHealth(float NewHealth, APlayerState* DamagedPlayer);
 
 	UFUNCTION(Server, Reliable)
-	void ServerUpdateHUDHealth();
+	void ServerUpdateHUDHealth(float NewHealth, APlayerState* DamagedPlayer);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastUpdateHUDHealth();
+	void MulticastUpdateHUDHealth(float NewHealth, APlayerState* DamagedPlayer);
 
 	UFUNCTION()
 	void FlipCharacter(bool bCharacterFlipped);

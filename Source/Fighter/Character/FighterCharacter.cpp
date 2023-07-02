@@ -116,7 +116,6 @@ void AFighterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(AFighterCharacter, OtherPlayer);
 	DOREPLIFETIME(AFighterCharacter, bStartsLeft);
 	DOREPLIFETIME(AFighterCharacter, bDisableMovement);
-	DOREPLIFETIME(AFighterCharacter, FighterPlayerController);
 }
 
 void AFighterCharacter::PostInitializeComponents()
@@ -150,9 +149,10 @@ void AFighterCharacter::BeginPlay()
 
 	if (HasAuthority())
 	{
-		OnTakeAnyDamage.AddDynamic(this, &AFighterCharacter::ReceiveDamage);
+		
 		
 	}
+	OnTakeAnyDamage.AddDynamic(this, &AFighterCharacter::ReceiveDamage);
 	HandleUpdateHealth.AddDynamic(this, &AFighterCharacter::UpdateHUDHealth);
 }
 
@@ -253,7 +253,7 @@ void AFighterCharacter::CameraSetup()
 	}
 }
 
-void AFighterCharacter::UpdateHUDHealth(float NewHealth, bool bLeftHealthBar)
+void AFighterCharacter::UpdateHUDHealth(float NewHealth, APlayerState* DamagedPlayer)
 {
 	FighterPlayerController = FighterPlayerController == nullptr ? Cast<AFighterPlayerController>(Controller) : FighterPlayerController;
 	AFighterPlayerController* OtherPlayerController = Cast<AFighterPlayerController>(OtherPlayer->GetController());
@@ -299,14 +299,14 @@ void AFighterCharacter::UpdateHUDHealth(float NewHealth, bool bLeftHealthBar)
 	*/
 }
 
-void AFighterCharacter::ServerUpdateHUDHealth_Implementation()
+void AFighterCharacter::ServerUpdateHUDHealth_Implementation(float NewHealth, APlayerState* DamagedPlayer)
 {
-	MulticastUpdateHUDHealth();
+	MulticastUpdateHUDHealth(NewHealth, DamagedPlayer);
 }
 
-void AFighterCharacter::MulticastUpdateHUDHealth_Implementation()
+void AFighterCharacter::MulticastUpdateHUDHealth_Implementation(float NewHealth, APlayerState* DamagedPlayer)
 {	
-	HandleUpdateHealth.Broadcast(Health, bStartsLeft);
+	HandleUpdateHealth.Broadcast(NewHealth, DamagedPlayer);
 }
 
 void AFighterCharacter::InitializeHealthBars()
@@ -325,6 +325,21 @@ void AFighterCharacter::InitializeHealthBars()
 			FighterPlayerController->SetHUDHealthP2(Health, MaxHealth);
 		}
 	}
+}
+
+void AFighterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ReceiveDamage"));
+	Health -= Damage;
+	Health = FMath::Clamp(Health, 0.f, MaxHealth);
+	PlayHitReactMontage();
+	FighterPlayerController = FighterPlayerController == nullptr ? Cast<AFighterPlayerController>(Controller) : FighterPlayerController;
+	if (FighterPlayerController)
+	{
+		APlayerState* PS = FighterPlayerController->PlayerState;
+		ServerUpdateHUDHealth(Health, PS);
+	}
+	
 }
 
 void AFighterCharacter::OnRep_Flipped()
@@ -357,20 +372,6 @@ void AFighterCharacter::MulticastFlipCharacter_Implementation(bool bCharacterFli
 	SetActorRotation(InitRot.Quaternion());
 }
 
-void AFighterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
-{
-	UE_LOG(LogTemp, Warning, TEXT("ReceiveDamage"));
-	Health -= Damage;
-	Health = FMath::Clamp(Health, 0.f, MaxHealth);
-//	UpdateHUDHealth();
-	PlayHitReactMontage();
-	FGGameMode = FGGameMode == nullptr ? GetWorld()->GetAuthGameMode<AFGGameMode>() : FGGameMode;
-	if (FGGameMode)
-	{
-		FGGameMode->UpdateHUDPlayerHealth(Health, MaxHealth, bStartsLeft);
-	}
-	//ServerUpdateHUDHealth();
-}
 
 void AFighterCharacter::Move(const FInputActionValue& Value)
 {

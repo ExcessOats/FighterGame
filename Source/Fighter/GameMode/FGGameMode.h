@@ -21,7 +21,6 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void FindPlayerStarts();
 	virtual void SpawnPlayer(class AFighterPlayerController* SpawnedPlayer);
-	void UpdateHUDPlayerHealth(float NewHealth, float MaxHealth, bool bStartsLeft);
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AFighterCharacter> DefaultCharacterClassTemp; // later this will be set by character selection

@@ -140,32 +140,5 @@ void AFGGameMode::SpawnPlayer(AFighterPlayerController* SpawnedPlayer)
 	
 }
 
-void AFGGameMode::UpdateHUDPlayerHealth(float NewHealth, float MaxHealth, bool bStartsLeft)
-{
-	AFighterPlayerController* BPlayer = Cast<AFighterPlayerController>(GetWorld()->GetFirstPlayerController());
-	if (BPlayer)
-	{
-		if (bStartsLeft)
-		{
-			BPlayer->SetHUDHealthP1(NewHealth, MaxHealth);
-		}
-		else
-		{
-			BPlayer->SetHUDHealthP2(NewHealth, MaxHealth);
-		}
-	}
-	/*
-	if (bStartsLeft)
-	{
-		P1Controller->SetHUDHealthP1(NewHealth, MaxHealth);
-		P2Controller->SetHUDHealthP1(NewHealth, MaxHealth);
-	}
-	else
-	{
-		P1Controller->SetHUDHealthP2(NewHealth, MaxHealth);
-		P2Controller->SetHUDHealthP2(NewHealth, MaxHealth);
-	}
-	*/
-}
 
 
