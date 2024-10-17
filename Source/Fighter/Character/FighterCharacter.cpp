@@ -97,6 +97,7 @@ void AFighterCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFighterCharacter::Jump);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFighterCharacter::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AFighterCharacter::MoveReleased);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AFighterCharacter::CrouchPressed);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AFighterCharacter::CrouchReleased);
 		EnhancedInputComponent->BindAction(Attack1Action, ETriggerEvent::Started, this, &AFighterCharacter::Attack1Pressed);
@@ -259,7 +260,7 @@ void AFighterCharacter::UpdateHUDHealth(float NewHealth, APlayerState* DamagedPl
 	AFighterPlayerController* OtherPlayerController = Cast<AFighterPlayerController>(OtherPlayer->GetController());
 	if (FighterPlayerController && OtherPlayerController)//
 	{
-		if (bLeftHealthBar)
+		if (bStartsLeft)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Update Health P1"));
 			FighterPlayerController->SetHUDHealthP1(NewHealth, MaxHealth);
@@ -390,24 +391,47 @@ void AFighterCharacter::Move(const FInputActionValue& Value)
 			const FRotator AimRotation = GetBaseAimRotation();
 			const FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(GetVelocity());
 			const FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation);
-			if (-90.f > DeltaRot.Yaw || DeltaRot.Yaw > 90.f)
+			if (-90.f > DeltaRot.Yaw || DeltaRot.Yaw > 90.f) // If moving left onscreen
 			{
-				if (bFlipped) bBackwards = false;
-				else bBackwards = true;
+				if (bFlipped) // P2 side moving forward
+				{
+					bBackwards = false;
+					Direction = EDirectionalInput::DI_Forward;
+				}
+				else // P1 Side moving backward
+				{
+					bBackwards = true;
+					Direction = EDirectionalInput::DI_Backward;
+				}
 			}
-			else
+			else // If moving right on screen
 			{
-				if (bFlipped) bBackwards = true;
-				else bBackwards = false;
+				if (bFlipped) // P2 side moving backwards
+				{
+					bBackwards = true;
+					Direction = EDirectionalInput::DI_Backward;
+				}
+				else // P1 side moving forward
+				{
+					bBackwards = false;
+					Direction = EDirectionalInput::DI_Forward;
+				}			
 			}
+			
 			if (!HasAuthority())
 			{
 				ServerSetBackwards(bBackwards);
 			}
-
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *UEnum::GetValueAsString(Direction));
 			AddMovementInput(RightDirection, MovementVector.X);
 		}
 	}	
+}
+
+void AFighterCharacter::MoveReleased()
+{
+	Direction = EDirectionalInput::DI_Neutral;
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *UEnum::GetValueAsString(Direction));
 }
 
 void AFighterCharacter::ServerSetBackwards_Implementation(bool bBack)

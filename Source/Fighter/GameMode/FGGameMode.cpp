@@ -28,7 +28,7 @@ void AFGGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void AFGGameMode::SpawnFighters()
 {
-	if (PCArray.Num() == 1)
+	if (PCArray.Num() == 1) // only spawn 1 player if there is only 1 player controller
 	{
 		UE_LOG(LogTemp, Warning, TEXT("One Player"));
 		UWorld* World = GetWorld();
@@ -39,7 +39,7 @@ void AFGGameMode::SpawnFighters()
 		FRotator Rotation = P2Start.GetRotation().Rotator();
 		Player2 = World->SpawnActor<AFighterCharacter>(DefaultCharacterClassTemp, Location, Rotation);
 	}
-	else 
+	else // spawn both players
 	{
 		if (Player1)
 		{

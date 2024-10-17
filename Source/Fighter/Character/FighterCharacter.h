@@ -14,6 +14,14 @@ class UInputAction;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCharacterFlipped, bool, bCharacterFlipped);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUpdateHealth, float, NewHealth, APlayerState*, DamagedPlayer);
 
+UENUM(BlueprintType)
+enum class EDirectionalInput : uint8
+{
+	DI_Neutral		UMETA(DisplayName = "Neutral"),
+	DI_Forward		UMETA(DisplayName = "Forward"),
+	DI_Backward		UMETA(DisplayName = "Backward")
+};
+
 UCLASS(config=Game)
 class AFighterCharacter : public ACharacter
 {
@@ -117,6 +125,7 @@ protected:
 	UInputAction* Attack4Action;
 
 	void Move(const FInputActionValue& Value);
+	void MoveReleased();
 	virtual void Jump() override;
 	void CrouchPressed(const FInputActionValue& Value);
 	void CrouchReleased(const FInputActionValue& Value);
@@ -150,6 +159,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* Combat;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	EDirectionalInput Direction = EDirectionalInput::DI_Neutral;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AFightCamera> FightCameraClass;
